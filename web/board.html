@@ -28,7 +28,7 @@ select,input{font:inherit;padding:8px 11px;border:1px solid #cfd7e3;border-radiu
 .badge{padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:700;background:var(--okbg);color:var(--ok)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:13px;margin-bottom:17px}
 .tile{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 17px;box-shadow:0 1px 3px rgba(10,37,64,.08)}.tile .l{color:var(--sec);font-size:12.5px;font-weight:600}.tile .v{font:700 29px 'Open Sans',sans-serif;margin-top:6px;letter-spacing:-.01em}
-.gcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(192px,1fr));gap:15px;margin-bottom:18px}.gc{border-radius:16px;padding:17px 19px;color:#fff;box-shadow:0 8px 20px rgba(10,37,64,.13)}.gc .n{font:800 30px 'Open Sans',sans-serif;line-height:1}.gc .l{font-size:13px;opacity:.96;margin-top:6px;font-weight:600}.gc .ic{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.22);display:grid;place-items:center;margin-bottom:13px}.gc.p{background:linear-gradient(135deg,#a78bfa,#7c5cf0)}.gc.b{background:linear-gradient(135deg,#5aa0fb,#2f6fe0)}.gc.r{background:linear-gradient(135deg,#ff8a8a,#f0524b)}.gc.o{background:linear-gradient(135deg,#ffb673,#f7942f)}.gc.g{background:linear-gradient(135deg,#55cf93,#1aa05e)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(262px,1fr));gap:14px}
+.gcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(192px,1fr));gap:15px;margin-bottom:18px}.gc{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:0 1px 3px rgba(10,37,64,.07);display:flex;flex-direction:column}.gc .n{font:800 28px 'Open Sans',sans-serif;color:#0a2540;line-height:1}.gc .l{font-size:12.5px;color:#47546b;margin-top:5px;font-weight:600}.gc .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;margin-bottom:12px;background:var(--cb);color:var(--c)}.gc.p{--c:#635bff;--cb:#eef0ff}.gc.r{--c:#c0392b;--cb:#fdeae7}.gc.b{--c:#2f6fe0;--cb:#e8f0fd}.gc.o{--c:#6b4bd6;--cb:#efeafd}.gc.g{--c:#14854f;--cb:#e4f5ec}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(262px,1fr));gap:14px}
 .scard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;transition:.1s}
 .scard:hover{border-color:var(--gold);box-shadow:0 6px 18px rgba(87,28,37,.1);transform:translateY(-1px)}
 .scard h3{margin:0;font-size:18px;font-weight:600}.scard .city{color:var(--sec);font-size:12.5px;margin-top:2px}
@@ -136,7 +136,7 @@ function command(){const list=scopedStores().slice().sort((a,b)=>score(b)-score(
   const sty={};list.forEach(s=>(DATA.stock&&DATA.stock[s.id]||[]).forEach(r=>sty[r.style]=(sty[r.style]||0)+r.d45));
   const top=Object.entries(sty).sort((a,b)=>b[1]-a[1]).slice(0,6);
   const pend=DATA.demands.filter(d=>d.status==='pending').length;
-  const kic=k=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>`;
+  const kic=k=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>`;
   title.textContent="Command Center";
   view.innerHTML=`<div class="gcards">
     <div class="gc p"><div class="ic">${kic('command')}</div><div class="n">${list.length}</div><div class="l">Stores in view</div></div>
