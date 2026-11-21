@@ -14,7 +14,7 @@ h1,h2,h3,.disp{font-family:'Inter',Georgia,serif}
 .side{background:var(--sidebar);color:#fbeedd;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
 .brand{padding:19px 20px;font:600 21px 'Inter',serif;border-bottom:1px solid #7a3039;letter-spacing:.01em}.brand b{color:#e9cd86;font-weight:700}
 .brand small{display:block;font:500 10.5px 'Inter';color:#e3c8a2;margin-top:6px;letter-spacing:.14em}
-.nav{padding:12px 10px;flex:1;overflow:auto}.nav a{display:flex;gap:12px;align-items:center;padding:11px 13px;border-radius:9px;color:#f6e7d4;cursor:pointer;margin-bottom:2px;font-size:14.5px;font-weight:500}
+.nav{padding:12px 10px;flex:1;overflow:auto}.nav a{display:flex;gap:11px;align-items:center;padding:11px 13px;border-radius:9px;color:#f6e7d4;cursor:pointer;margin-bottom:2px;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden}
 .nav a:hover{background:var(--sidebar2)}.nav a.on{background:#e9cd86;color:#4a1319;font-weight:700}
 .nav a svg{width:19px;height:19px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7}.nav .tag{margin-left:auto;background:#7a3039;color:#e9cd86;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700}.nav a.on .tag{background:rgba(74,19,25,.16);color:#4a1319}
 .foot{padding:12px 16px;border-top:1px solid #7a3039;font-size:11px;color:#e3c8a2}
@@ -68,6 +68,7 @@ select,input{font:inherit;padding:8px 11px;border:1px solid #cdbfac;border-radiu
 .seg{display:inline-flex;border:1px solid #cdbfac;border-radius:9px;overflow:hidden}.seg button{border:none;background:#fff;padding:7px 13px;cursor:pointer;font:600 13px 'Inter';color:var(--sec)}.seg button.on{background:var(--gold);color:#3f2a08}
 .scrim{display:none}
 @media(max-width:860px){.app{grid-template-columns:1fr}.side{position:fixed;left:0;top:0;width:232px;z-index:40;transform:translateX(-100%);transition:transform .2s}.app.open .side{transform:none}.app.open .scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:30}.burger{display:block}.row{grid-template-columns:1fr}.content{padding:16px 15px 72px}.top h1{font-size:18px}}
+.nav{scrollbar-width:thin;scrollbar-color:rgba(233,205,134,.5) transparent}.nav::-webkit-scrollbar{width:7px}.nav::-webkit-scrollbar-thumb{background:rgba(233,205,134,.5);border-radius:6px}.nav::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar{width:11px;height:11px}::-webkit-scrollbar-thumb{background:#d2c0a2;border-radius:7px;border:3px solid transparent;background-clip:content-box}::-webkit-scrollbar-thumb:hover{background:#c0a87f;background-clip:content-box}::-webkit-scrollbar-track{background:transparent}
 #recmap{height:440px;border-radius:14px;border:1px solid var(--line);z-index:0}.leaflet-container{font:inherit}
 </style></head><body>
 <div class="app" id="app">
@@ -345,8 +346,8 @@ function insights(){title.textContent="Insights";const stores=scopedStores();
 }
 
 // ---- RECOMMENDATIONS (automated workflow) ----
-let recTimer=null,recMovers=[],_recmap=null;
-function stopRecAnim(){if(recTimer){clearInterval(recTimer);recTimer=null;}recMovers=[];if(_recmap){try{_recmap.remove();}catch(e){}_recmap=null;}}
+let recTimer=null,recMovers=[],_recmap=null,recLayers={};
+function stopRecAnim(){if(recTimer){clearInterval(recTimer);recTimer=null;}recMovers=[];recLayers={};if(_recmap){try{_recmap.remove();}catch(e){}_recmap=null;}}
 function buildRecs(){const donors={};for(const st in DATA.stock){DATA.stock[st].forEach(r=>{if((r.status==='over'||r.status==='dead')&&r.oh>0){const k=r.style+'|'+r.size;(donors[k]=donors[k]||[]).push({store:st,surplus:Math.max(1,r.oh-Math.round(r.d45*0.6))});}});}
   let recs=[];for(const st in DATA.stock){if(role().scope&&!role().scope.includes(st))continue;DATA.stock[st].forEach(r=>{if(r.need>0&&r.status==='short'){const key=st+'|'+r.style+'|'+r.size;if(recApproved[key])return;const k=r.style+'|'+r.size;const d=(donors[k]||[]).filter(x=>x.store!==st).sort((a,b)=>b.surplus-a.surplus)[0];
     recs.push({key,to:st,style:r.style,size:r.size,need:r.need,from:d?d.store:DATA.warehouse.id,kind:d?'STORE_TO_STORE':'WAREHOUSE_TO_STORE'});}});}
@@ -355,26 +356,40 @@ function recommendations(){title.textContent="Recommendations";const recs=buildR
   const steps=["Detect shortfall","Pick best source","Approve","Dispatch","Track","Deliver"];
   view.innerHTML=`<div class="card"><h2>Automated workflow</h2>
     <div class="flowrow" style="font-size:12.5px">${steps.map((s,i)=>`<span class="node">${i+1}. ${s}${i<2?' <b style="color:var(--ok)">auto</b>':i===2?' <b style="color:var(--accent)">you</b>':''}</span>${i<steps.length-1?'<span class="arr">&rarr;</span>':''}`).join("")}</div>
-    <div class="sub2" style="margin-top:8px">The engine finds every store short on a style+size, picks the cheapest source (a nearby overstocked store, else the warehouse), and proposes the move. Approve &mdash; it routes the stock and animates on the map below.</div></div>
-   <div class="card"><h2>Live move map <span class="c">${recs.length} proposed routes</span></h2><div id="recmap"></div>
+    <div class="sub2" style="margin-top:8px">The engine finds every store short on a style+size, picks the cheapest source (a nearby overstocked store, else the warehouse), and proposes the move. Click any move to trace it on the map.</div></div>
+   <div class="card"><h2>Live move map <span class="c">${recs.length} proposed routes</span></h2>
+     <div style="position:relative"><div id="recmap"></div><div id="recpanel" style="display:none"></div></div>
      <div class="legend"><span><span class="dot" style="background:#2f6db4"></span>From warehouse</span><span><span class="dot" style="background:#8a5a1a"></span>Store &rarr; store</span><span><span class="dot" style="background:#9f1d15"></span>Store that is short</span></div></div>
    <div class="card"><h2>Recommended moves <span class="c">${recs.length} proposed${may?'':' &middot; read-only'}</span>${may&&recs.length?`<button class="btn g sm" style="margin-left:10px" onclick="approveAll()">Approve all &amp; send</button>`:''}</h2>
-    ${recs.length?recs.map(r=>`<div class="shp"><div class="hd"><span class="rt">${r.from} &rarr; ${r.to}</span><span class="sub2" style="margin-left:auto">${r.need}&times; ${r.style}-${r.size}</span></div>
+    ${recs.length?recs.map(r=>`<div class="shp" style="cursor:pointer" onclick="focusRec('${r.key}')"><div class="hd"><span class="rt">${r.from} &rarr; ${r.to}</span><span class="sub2" style="margin-left:auto">${r.need}&times; ${r.style}-${r.size}</span></div>
       <div class="flowrow"><span class="node">${r.kind==='STORE_TO_STORE'?'Move surplus':'Warehouse stock'}</span><span class="arr">&rarr;</span><span class="node">${r.style}-${r.size}</span><span class="arr">&rarr;</span><span class="node">${r.to}</span></div>
       <div class="sub2">${r.to} is short this size. Source: <b>${r.from}</b> (${r.kind==='STORE_TO_STORE'?'overstocked nearby':'central warehouse'}).</div>
-      ${may?`<div style="display:flex;gap:6px;margin-top:7px"><button class="btn ok sm" onclick="approveRec('${r.key}')">Approve &amp; send ${r.need}</button><button class="btn sm" onclick="dismissRec('${r.key}')">Dismiss</button></div>`:''}</div>`).join(""):'<div class="sub2">No shortfalls in view — every store is covered.</div>'}</div>`;
+      ${may?`<div style="display:flex;gap:6px;margin-top:7px" onclick="event.stopPropagation()"><button class="btn ok sm" onclick="approveRec('${r.key}')">Approve &amp; send ${r.need}</button><button class="btn sm" onclick="dismissRec('${r.key}')">Dismiss</button></div>`:''}</div>`).join(""):'<div class="sub2">No shortfalls in view — every store is covered.</div>'}</div>`;
   initRecMap(recs);
 }
+function recPanelHtml(r){const may=can('accept')||can('approve')||can('load');return `<div style="position:absolute;top:12px;right:12px;width:252px;background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:0 10px 30px rgba(87,28,37,.24);padding:15px;z-index:500">
+  <div style="display:flex;align-items:center"><b style="font-size:15.5px">${r.from} &rarr; ${r.to}</b><span onclick="closeRecPanel()" style="margin-left:auto;cursor:pointer;color:var(--sec);font-size:20px;line-height:.7">&times;</span></div>
+  <div class="sub2" style="margin:7px 0 9px">${r.to} is short on <b>${r.style}-${r.size}</b> for the next 45 days.</div>
+  <div class="kv"><span class="k">Send</span><b>${r.need} units</b></div>
+  <div class="kv"><span class="k">Source</span><b>${r.from}</b></div>
+  <div class="kv"><span class="k">Route type</span><b>${r.kind==='STORE_TO_STORE'?'Store surplus':'Central warehouse'}</b></div>
+  ${may?`<div style="display:flex;gap:6px;margin-top:11px"><button class="btn ok sm" onclick="approveRec('${r.key}')">Approve &amp; send</button><button class="btn sm" onclick="dismissRec('${r.key}')">Dismiss</button></div>`:'<div class="sub2" style="margin-top:8px">Read-only view.</div>'}</div>`}
+function focusRec(key){const r=buildRecs().find(x=>x.key===key);if(!r)return;
+  Object.values(recLayers).forEach(L=>L.line.setStyle({weight:2,opacity:.3}));
+  const L=recLayers[key];if(L&&_recmap){L.line.setStyle({weight:5,opacity:1});_recmap.fitBounds([L.a,L.b],{padding:[70,70],maxZoom:7});}
+  const p=document.getElementById('recpanel');if(p){p.innerHTML=recPanelHtml(r);p.style.display='block';}}
+window.focusRec=focusRec;
+window.closeRecPanel=()=>{const p=document.getElementById('recpanel');if(p)p.style.display='none';Object.values(recLayers).forEach(L=>L.line.setStyle({weight:2,opacity:.45}));};
 function initRecMap(recs){const el=document.getElementById('recmap');if(!el||!window.L)return;
   const map=L.map('recmap',{scrollWheelZoom:false});
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:11,attribution:'&copy; OpenStreetMap'}).addTo(map);
-  const wh=DATA.warehouse,stById={};DATA.stores.forEach(s=>stById[s.id]=s);const pts=[];
+  const wh=DATA.warehouse,stById={};DATA.stores.forEach(s=>stById[s.id]=s);const pts=[];recMovers=[];recLayers={};
   if(wh.lat){L.circleMarker([wh.lat,wh.lon],{radius:10,color:'#fff',weight:2,fillColor:'#571c25',fillOpacity:1}).addTo(map).bindTooltip('WH-KOL &middot; warehouse',{direction:'top'});pts.push([wh.lat,wh.lon]);}
-  const seen={};recMovers=[];
+  const seen={};
   recs.forEach(r=>{const d=stById[r.to];const src=r.from===wh.id?wh:stById[r.from];if(!d||!d.lat||!src||!src.lat)return;
     const a=[src.lat,src.lon],b=[d.lat,d.lon],col=r.kind==='STORE_TO_STORE'?'#8a5a1a':'#2f6db4';
-    if(!seen[r.to]){seen[r.to]=1;L.circleMarker(b,{radius:7,color:'#fff',weight:2,fillColor:'#9f1d15',fillOpacity:.95}).addTo(map).bindTooltip(r.to+' &middot; short',{direction:'top'});pts.push(b);}
-    L.polyline([a,b],{color:col,weight:2,opacity:.45,dashArray:'5 8'}).addTo(map);
+    const line=L.polyline([a,b],{color:col,weight:2,opacity:.45,dashArray:'5 8'}).addTo(map);line.on('click',()=>focusRec(r.key));recLayers[r.key]={line,a,b};
+    if(!seen[r.to]){seen[r.to]=1;L.circleMarker(b,{radius:7,color:'#fff',weight:2,fillColor:'#9f1d15',fillOpacity:.95}).addTo(map).bindTooltip(r.to+' &middot; short',{direction:'top'}).on('click',()=>focusRec(r.key));pts.push(b);}
     recMovers.push({a,b,t:Math.random(),m:L.circleMarker(a,{radius:5,color:'#fff',weight:2,fillColor:col,fillOpacity:1}).addTo(map)});});
   if(pts.length)map.fitBounds(pts,{padding:[34,34]});
   _recmap=map;
