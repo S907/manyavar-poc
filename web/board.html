@@ -11,7 +11,7 @@
 body{font:15px/1.55 'Inter',system-ui,sans-serif;color:var(--ink);background:linear-gradient(180deg,#f7fafd,#eef3f9) fixed;-webkit-text-size-adjust:100%}
 h1,h2,h3,.disp{font-family:'Inter',Georgia,serif}
 .app{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
-.side{background:linear-gradient(180deg,#4f8cf0 0%,#5b6cfa 26%,#7a5bff 50%,#a75bd6 74%,#e06a9c 100%);color:#fff;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.side{background:#6b57e0;color:#fff;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
 .brand{padding:19px 20px;font:600 21px 'Inter',serif;border-bottom:1px solid rgba(255,255,255,.2);letter-spacing:.01em}.brand b{color:#ffffff;font-weight:700}
 .brand small{display:block;font:500 10.5px 'Inter';color:rgba(255,255,255,.72);margin-top:6px;letter-spacing:.14em}
 .nav{padding:12px 10px;flex:1;overflow:auto}.nav a{display:flex;gap:11px;align-items:center;padding:11px 13px;border-radius:9px;color:rgba(255,255,255,.92);cursor:pointer;margin-bottom:2px;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden}
@@ -28,7 +28,7 @@ select,input{font:inherit;padding:8px 11px;border:1px solid #cfd7e3;border-radiu
 .badge{padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:700;background:var(--okbg);color:var(--ok)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:13px;margin-bottom:17px}
 .tile{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 17px;box-shadow:0 1px 3px rgba(10,37,64,.08)}.tile .l{color:var(--sec);font-size:12.5px;font-weight:600}.tile .v{font:700 29px 'Open Sans',sans-serif;margin-top:6px;letter-spacing:-.01em}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(262px,1fr));gap:14px}
+.gcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(192px,1fr));gap:15px;margin-bottom:18px}.gc{border-radius:16px;padding:17px 19px;color:#fff;box-shadow:0 8px 20px rgba(10,37,64,.13)}.gc .n{font:800 30px 'Open Sans',sans-serif;line-height:1}.gc .l{font-size:13px;opacity:.96;margin-top:6px;font-weight:600}.gc .ic{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.22);display:grid;place-items:center;margin-bottom:13px}.gc.p{background:linear-gradient(135deg,#a78bfa,#7c5cf0)}.gc.b{background:linear-gradient(135deg,#5aa0fb,#2f6fe0)}.gc.r{background:linear-gradient(135deg,#ff8a8a,#f0524b)}.gc.o{background:linear-gradient(135deg,#ffb673,#f7942f)}.gc.g{background:linear-gradient(135deg,#55cf93,#1aa05e)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(262px,1fr));gap:14px}
 .scard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;transition:.1s}
 .scard:hover{border-color:var(--gold);box-shadow:0 6px 18px rgba(87,28,37,.1);transform:translateY(-1px)}
 .scard h3{margin:0;font-size:18px;font-weight:600}.scard .city{color:var(--sec);font-size:12.5px;margin-top:2px}
@@ -116,6 +116,8 @@ function renderNav(){nav.innerHTML=NAV.map(([k,l,ic])=>{let tag="";if(k==="deliv
 function score(s){let x=0;if(s.cover!=null&&s.cover<12)x+=(12-s.cover)*3;x+=s.aged*0.3;x+=s.wants*0.05;return x}
 function pillOf(s){return `<span class="pill st-${s.status}">${s.status.replace('-',' ')}</span>`}
 function gauge(pct,status,size){size=size||56;const r=size/2-5,c=2*Math.PI*r,p=Math.max(0,Math.min(100,pct)),off=c*(1-p/100);const col=(status==='understocked'||status==='short')?'#9f1d15':(status==='idle-heavy'||status==='dead')?'#573280':(status==='overstocked'||status==='over')?'#8f5200':'#17603b';return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#ece3d4" stroke-width="6"/><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 ${size/2} ${size/2})"/><text x="${size/2}" y="${size/2+1}" text-anchor="middle" dominant-baseline="middle" font-size="${(size*0.25).toFixed(0)}" font-weight="700" font-family="'Open Sans',sans-serif" fill="${col}">${Math.round(p)}%</text></svg>`;}
+function donut(segs,size){size=size||150;const r=size/2-14,cx=size/2,cy=size/2,C=2*Math.PI*r,tot=segs.reduce((a,s)=>a+s.v,0)||1;let off=0,arcs='';segs.forEach(s=>{if(s.v<=0)return;const len=C*s.v/tot;arcs+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.c}" stroke-width="16" stroke-linecap="butt" stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 ${cx} ${cy})"/>`;off+=len;});return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="flex:none">${arcs}<text x="${cx}" y="${cy-3}" text-anchor="middle" font-size="26" font-weight="800" font-family="'Open Sans',sans-serif" fill="#0a2540">${tot}</text><text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="11.5" fill="#47546b">stores</text></svg>`;}
+function vbars(data){const n=data.length,W=n*72,max=Math.max(1,...data.map(d=>d[1]));let s='';data.forEach((d,i)=>{const bh=(d[1]/max)*140,x=i*72+18,y=162-bh;s+=`<rect x="${x}" y="${y}" width="38" height="${bh}" rx="7" fill="url(#vbg)"/><text x="${x+19}" y="${y-7}" text-anchor="middle" font-size="12.5" font-weight="700" font-family="'Open Sans',sans-serif" fill="#0a2540">${d[1]}</text><text x="${x+19}" y="184" text-anchor="middle" font-size="11" fill="#47546b">${d[0]}</text>`;});return `<svg viewBox="0 0 ${W} 196" width="100%" height="214" preserveAspectRatio="xMidYMax meet"><defs><linearGradient id="vbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8b84ff"/><stop offset="1" stop-color="#635bff"/></linearGradient></defs>${s}</svg>`;}
 function thumb(s){const c=s.status==='understocked'?'#9f1d15':s.status==='idle-heavy'?'#573280':s.status==='overstocked'?'#8f5200':'#17603b';return `<svg width="38" height="38" viewBox="0 0 38 38" style="flex:none"><rect x="4" y="16" width="30" height="18" rx="2" fill="${c}22"/><path d="M4 16 l4 -8 h22 l4 8 z" fill="${c}"/><rect x="15" y="22" width="8" height="12" fill="${c}bb"/><rect x="8" y="20" width="5" height="4" fill="${c}55"/><rect x="25" y="20" width="5" height="4" fill="${c}55"/></svg>`}
 function scard(s){const hot=s.fill>=99||s.status==='understocked';
   return `<div class="scard" data-id="${s.id}"><div style="display:flex;gap:11px;align-items:center;margin-bottom:2px">${thumb(s)}<div><h3 style="margin:0">${s.id}</h3><div class="city">${esc(s.city)} &middot; ${s.tier} &middot; ${regionCity[s.city]||''}</div></div></div>${pillOf(s)}
@@ -129,21 +131,34 @@ function bindCards(){document.querySelectorAll(".scard").forEach(c=>c.onclick=()
 
 function command(){const list=scopedStores().slice().sort((a,b)=>score(b)-score(a));
   const un=list.filter(s=>s.status==='understocked').length,idleU=list.reduce((a,s)=>a+s.aged,0),wants=list.reduce((a,s)=>a+s.wants,0);
+  const ships=scopedShips();
+  const sc={healthy:0,understocked:0,'idle-heavy':0,overstocked:0};list.forEach(s=>sc[s.status]=(sc[s.status]||0)+1);
+  const sty={};list.forEach(s=>(DATA.stock&&DATA.stock[s.id]||[]).forEach(r=>sty[r.style]=(sty[r.style]||0)+r.d45));
+  const top=Object.entries(sty).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const pend=DATA.demands.filter(d=>d.status==='pending').length;
+  const kic=k=>`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IC[k]}</svg>`;
   title.textContent="Command Center";
-  view.innerHTML=`<div class="tiles">
-    <div class="tile"><div class="l">Stores in view</div><div class="v">${list.length}</div></div>
-    <div class="tile"><div class="l">Understocked</div><div class="v" style="color:var(--bad)">${un}</div></div>
-    <div class="tile"><div class="l">Shipments moving</div><div class="v" style="color:var(--accent)">${scopedShips().length}</div></div>
-    <div class="tile"><div class="l">Idle units</div><div class="v" style="color:var(--pur)">${idleU.toLocaleString("en-IN")}</div></div>
-    <div class="tile"><div class="l">Units wanted</div><div class="v" style="color:var(--ok)">${wants.toLocaleString("en-IN")}</div></div></div>
+  view.innerHTML=`<div class="gcards">
+    <div class="gc p"><div class="ic">${kic('command')}</div><div class="n">${list.length}</div><div class="l">Stores in view</div></div>
+    <div class="gc r"><div class="ic">${kic('exceptions')}</div><div class="n">${un}</div><div class="l">Understocked</div></div>
+    <div class="gc b"><div class="ic">${kic('deliveries')}</div><div class="n">${ships.length}</div><div class="l">Shipments moving</div></div>
+    <div class="gc o"><div class="ic">${kic('idle')}</div><div class="n">${idleU.toLocaleString('en-IN')}</div><div class="l">Idle units</div></div>
+    <div class="gc g"><div class="ic">${kic('stores')}</div><div class="n">${wants.toLocaleString('en-IN')}</div><div class="l">Units wanted</div></div></div>
+   <div class="row"><div>
+     <div class="card"><h2>Demand overview <span class="c">top styles &middot; next 45 days</span></h2>${vbars(top)}</div>
+    </div><div>
+     <div class="card"><h2>Store health <span class="c">${list.length} stores</span></h2>
+      <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">${donut([{v:sc.healthy,c:'#1aa05e'},{v:sc.understocked,c:'#c0392b'},{v:sc['idle-heavy'],c:'#6b4bd6'},{v:sc.overstocked,c:'#9a5b00'}],150)}
+       <div style="flex:1;min-width:130px">${[['Healthy','#1aa05e',sc.healthy],['Understocked','#c0392b',sc.understocked],['Idle-heavy','#6b4bd6',sc['idle-heavy']],['Overstocked','#9a5b00',sc.overstocked]].map(x=>`<div class="kv"><span class="k"><span class="dot" style="background:${x[1]}"></span>${x[0]}</span><b>${x[2]}</b></div>`).join('')}</div></div></div>
+    </div></div>
    <div class="row"><div>
      <div class="card"><h2>Needs attention first</h2>${list.slice(0,4).map(s=>`<div class="alert ${s.status==='understocked'?'bad':s.status==='idle-heavy'?'pur':'warn'}"><div><span class="ab">${s.id} &middot; ${esc(s.city)}</span> — ${s.status==='understocked'?`low stock, ${s.cover}d cover, wants +${s.wants}`:s.status==='idle-heavy'?`${s.aged} idle units sitting`:`fill ${s.fill}%`} <a class="back" style="margin:0" onclick="SEL='${s.id}';TAB='store';route()">Go to store &rarr;</a></div></div>`).join("")}</div>
-     <div class="card"><h2>Live deliveries <span class="c">${scopedShips().length} moving</span></h2>${scopedShips().slice(0,4).map(s=>`<div class="kv"><span class="k">${s.frm} &rarr; ${s.to} &middot; ${s.units}&times; ${s.style_id}</span><b>ETA ${s.arrive}</b></div>`).join("")}<a class="back" style="margin-top:8px" onclick="TAB='deliveries';route()">Open the delivery board</a></div>
     </div><div>
-     <div class="card"><h2>Exceptions <span class="c">${DATA.exceptions.problems.length}</span></h2>${DATA.exceptions.problems.slice(0,3).map(p=>`<div class="alert warn"><div>${esc(p.head)}</div></div>`).join("")}<a class="back" onclick="TAB='exceptions';route()">See all data problems</a></div>
-     <div class="card"><h2>Store requests <span class="c">${DATA.demands.filter(d=>d.status==='pending').length} pending</span></h2>${DATA.demands.slice(0,3).map(d=>`<div class="kv"><span class="k">${d.store} wants ${d.qty}&times; ${d.style} ${d.size}</span><b style="color:${d.status==='accepted'?'var(--ok)':d.status==='rejected'?'var(--bad)':'var(--warn)'}">${d.status}</b></div>`).join("")}<a class="back" onclick="TAB='warehouse';route()">Go to warehouse board</a></div>
+     <div class="card"><h2>Store requests <span class="c">${pend} pending</span></h2>${DATA.demands.slice(0,3).map(d=>`<div class="kv"><span class="k">${d.store} wants ${d.qty}&times; ${d.style} ${d.size}</span><b style="color:${d.status==='accepted'?'var(--ok)':d.status==='rejected'?'var(--bad)':'var(--warn)'}">${d.status}</b></div>`).join("")}<a class="back" style="margin-top:8px" onclick="TAB='warehouse';route()">Go to warehouse board &rarr;</a></div>
+     <div class="card"><h2>Live deliveries <span class="c">${ships.length} moving</span></h2>${ships.slice(0,3).map(s=>`<div class="kv"><span class="k">${s.frm} &rarr; ${s.to} &middot; ${s.units}&times; ${s.style_id}</span><b>ETA ${s.arrive}</b></div>`).join("")}<a class="back" style="margin-top:8px" onclick="TAB='deliveries';route()">Open the delivery board &rarr;</a></div>
     </div></div>`;
 }
+
 function leaderboard(){const list=scopedStores().slice().sort((a,b)=>score(b)-score(a));
   title.textContent="Stores";
   const un=list.filter(s=>s.status==='understocked').length,idleU=list.reduce((a,s)=>a+s.aged,0),wants=list.reduce((a,s)=>a+s.wants,0);
