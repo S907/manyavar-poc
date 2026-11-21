@@ -69,7 +69,7 @@ select,input{font:inherit;padding:8px 11px;border:1px solid #cdbfac;border-radiu
 .scrim{display:none}
 @media(max-width:860px){.app{grid-template-columns:1fr}.side{position:fixed;left:0;top:0;width:232px;z-index:40;transform:translateX(-100%);transition:transform .2s}.app.open .side{transform:none}.app.open .scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:30}.burger{display:block}.row{grid-template-columns:1fr}.content{padding:16px 15px 72px}.top h1{font-size:18px}}
 .nav{scrollbar-width:thin;scrollbar-color:rgba(233,205,134,.5) transparent}.nav::-webkit-scrollbar{width:7px}.nav::-webkit-scrollbar-thumb{background:rgba(233,205,134,.5);border-radius:6px}.nav::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar{width:11px;height:11px}::-webkit-scrollbar-thumb{background:#d2c0a2;border-radius:7px;border:3px solid transparent;background-clip:content-box}::-webkit-scrollbar-thumb:hover{background:#c0a87f;background-clip:content-box}::-webkit-scrollbar-track{background:transparent}
-#recmap{height:560px;border-radius:14px;border:1px solid var(--line);z-index:0}.leaflet-container{font:inherit}.recrow{align-items:start}.recmapcol{position:sticky;top:74px}@media(max-width:860px){.recmapcol{position:static}#recmap{height:380px}}
+#recmap{height:560px;border-radius:14px;border:1px solid var(--line);z-index:0}.leaflet-container{font:inherit}.recrow{align-items:start}.recmapcol{position:sticky;top:74px}@media(max-width:860px){.recmapcol{position:static}#recmap{height:380px}}#tt{position:fixed;display:none;z-index:9999;max-width:290px;background:#2a1f1c;color:#fbeedd;font:12.5px/1.45 'Inter',sans-serif;padding:10px 12px;border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.32);pointer-events:none}#tt b{color:#e9cd86}
 </style></head><body>
 <div class="app" id="app">
  <div class="scrim" onclick="toggleMenu(false)"></div>
@@ -348,9 +348,11 @@ function insights(){title.textContent="Insights";const stores=scopedStores();
 // ---- RECOMMENDATIONS (automated workflow) ----
 let recTimer=null,recMovers=[],_recmap=null,recLayers={};
 function stopRecAnim(){if(recTimer){clearInterval(recTimer);recTimer=null;}recMovers=[];recLayers={};if(_recmap){try{_recmap.remove();}catch(e){}_recmap=null;}}
+function styleNm(id){const m=(window.__sn||(window.__sn=(()=>{const o={};(DATA.wh_pick&&DATA.wh_pick.lines||[]).forEach(l=>o[l.style]=l.name);(DATA.shipments||[]).forEach(s=>{if(!o[s.style_id])o[s.style_id]=s.style;});return o;})()));return m[id]||id;}
+function tipFor(r){const nm=styleNm(r.style);const why=`${r.to} will sell about ${r.d45} of ${r.style}-${r.size} in 45 days but holds ${r.oh}. Sending ${r.need} from ${r.from} clears the shortfall before wedding-season sales are lost.`;return (`<b>${r.style} &mdash; ${esc(nm)}</b><br>Size ${r.size} &middot; ${r.need} units &middot; source ${r.from}<br><span style='opacity:.85'>${why}</span>`).replace(/"/g,'&quot;');}
 function buildRecs(){const donors={};for(const st in DATA.stock){DATA.stock[st].forEach(r=>{if((r.status==='over'||r.status==='dead')&&r.oh>0){const k=r.style+'|'+r.size;(donors[k]=donors[k]||[]).push({store:st,surplus:Math.max(1,r.oh-Math.round(r.d45*0.6))});}});}
   let recs=[];for(const st in DATA.stock){if(role().scope&&!role().scope.includes(st))continue;DATA.stock[st].forEach(r=>{if(r.need>0&&r.status==='short'){const key=st+'|'+r.style+'|'+r.size;if(recApproved[key])return;const k=r.style+'|'+r.size;const d=(donors[k]||[]).filter(x=>x.store!==st).sort((a,b)=>b.surplus-a.surplus)[0];
-    recs.push({key,to:st,style:r.style,size:r.size,need:r.need,from:d?d.store:DATA.warehouse.id,kind:d?'STORE_TO_STORE':'WAREHOUSE_TO_STORE'});}});}
+    recs.push({key,to:st,style:r.style,size:r.size,need:r.need,oh:r.oh,d45:r.d45,from:d?d.store:DATA.warehouse.id,kind:d?'STORE_TO_STORE':'WAREHOUSE_TO_STORE'});}});}
   recs.sort((a,b)=>b.need-a.need);return recs.slice(0,30);}
 function recommendations(){title.textContent="Recommendations";const recs=buildRecs();const may=can('accept')||can('approve')||can('load');
   const steps=["Detect shortfall","Pick best source","Approve","Dispatch","Track","Deliver"];
@@ -361,8 +363,8 @@ function recommendations(){title.textContent="Recommendations";const recs=buildR
      <div style="position:relative"><div id="recmap"></div><div id="recpanel" style="display:none"></div></div>
      <div class="legend"><span><span class="dot" style="background:#2f6db4"></span>From warehouse</span><span><span class="dot" style="background:#8a5a1a"></span>Store &rarr; store</span><span><span class="dot" style="background:#9f1d15"></span>Store that is short</span></div></div></div><div><div class="card"><h2>Recommended moves <span class="c">${recs.length} proposed${may?'':' &middot; read-only'}</span>${may&&recs.length?`<button class="btn g sm" style="margin-left:10px" onclick="approveAll()">Approve all &amp; send</button>`:''}</h2>
     ${recs.length?recs.map(r=>`<div class="shp" style="cursor:pointer" onclick="focusRec('${r.key}')"><div class="hd"><span class="rt">${r.from} &rarr; ${r.to}</span><span class="sub2" style="margin-left:auto">${r.need}&times; ${r.style}-${r.size}</span></div>
-      <div class="flowrow"><span class="node">${r.kind==='STORE_TO_STORE'?'Move surplus':'Warehouse stock'}</span><span class="arr">&rarr;</span><span class="node">${r.style}-${r.size}</span><span class="arr">&rarr;</span><span class="node">${r.to}</span></div>
-      <div class="sub2">${r.to} is short this size. Source: <b>${r.from}</b> (${r.kind==='STORE_TO_STORE'?'overstocked nearby':'central warehouse'}).</div>
+      <div class="flowrow"><span class="node" style="cursor:help" data-tip="${tipFor(r)}">${r.kind==='STORE_TO_STORE'?'Move surplus':'Warehouse stock'}</span><span class="arr">&rarr;</span><span class="node">${r.style}-${r.size}</span><span class="arr">&rarr;</span><span class="node">${r.to}</span></div>
+      <div class="sub2">Needs ~${r.d45} in 45 days, has ${r.oh}. Send <b>${r.need}</b> from <b>${r.from}</b> (${r.kind==='STORE_TO_STORE'?'overstocked nearby':'central warehouse'}).</div>
       ${may?`<div style="display:flex;gap:6px;margin-top:7px" onclick="event.stopPropagation()"><button class="btn ok sm" onclick="approveRec('${r.key}')">Approve &amp; send ${r.need}</button><button class="btn sm" onclick="dismissRec('${r.key}')">Dismiss</button></div>`:''}</div>`).join(""):'<div class="sub2">No shortfalls in view — every store is covered.</div>'}</div></div></div>`;
   initRecMap(recs);
 }
@@ -406,6 +408,7 @@ function route(){stop();stopRecAnim();playing=false;renderNav();document.getElem
 document.getElementById("nav").onclick=e=>{const a=e.target.closest("[data-t]");if(a){TAB=a.dataset.t;route()}};
 document.getElementById("role").onchange=()=>{SEL=null;if(TAB==='store')TAB='leaderboard';route()};
 function toggleMenu(open){document.getElementById("app").classList.toggle("open",open)}
+(function(){const tt=document.createElement('div');tt.id='tt';document.body.appendChild(tt);document.addEventListener('mouseover',e=>{const t=e.target.closest('[data-tip]');if(t){tt.innerHTML=t.getAttribute('data-tip');tt.style.display='block';}});document.addEventListener('mousemove',e=>{if(tt.style.display==='block'){let x=e.clientX+14,y=e.clientY+16;const w=tt.offsetWidth,hh=tt.offsetHeight;if(x+w>innerWidth-8)x=e.clientX-w-14;if(y+hh>innerHeight-8)y=e.clientY-hh-16;tt.style.left=x+'px';tt.style.top=y+'px';}});document.addEventListener('mouseout',e=>{if(e.target.closest('[data-tip]'))tt.style.display='none';});})();
 route();
 fetch('/api/board').then(r=>r.ok?r.json():null).then(d=>{if(d&&d.stores){DATA=d;DATA.shipments.forEach(s=>{s.progress=0;s.status='created';s.flag=false;s.halt=false});recApproved={};route();}}).catch(()=>{});
 </script></body></html>
