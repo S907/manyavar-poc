@@ -1,7 +1,0 @@
-kind,where,detail
-snapshot corrected,KNP-03 SHW-02-L,"snapshot shows 300, the weekly close for the same day shows 0; used 0. Please recount"
-snapshot corrected,MYS-02 KUR-02-M,"snapshot shows -4, the weekly close for the same day shows 3; used 3. Please recount"
-sales without stock,BLR-04 KUR-10-XXXL,1 sold in the window but zero in-stock days recorded
-sales without stock,KNP-03 KUR-11-XXL,1 sold in the window but zero in-stock days recorded
-sales without stock,LKO-02 KUR-07-XXXL,1 sold in the window but zero in-stock days recorded
-new store,BLR-05,"opened 21 days ago; its sales speed leans on similar stores, not its own short history"
