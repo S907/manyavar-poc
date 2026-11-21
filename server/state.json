@@ -1,0 +1,154 @@
+{
+ "status": {
+  "M0001": "rejected"
+ },
+ "audit": [
+  {
+   "at": "2026-11-21T12:48:35",
+   "user": "HO Merchandiser",
+   "role": "merchandiser",
+   "action": "rejected",
+   "move_id": "M0001",
+   "detail": "WH-KOL\u2192LKO-01 127\u00d7 KUR-04"
+  }
+ ],
+ "users": [
+  {
+   "user_id": "ADMIN",
+   "name": "Super Admin",
+   "email": "admin@manyavar",
+   "role": "super_admin",
+   "scope": {
+    "type": "all"
+   }
+  },
+  {
+   "user_id": "MERCH",
+   "name": "HO Merchandiser",
+   "email": "merch@manyavar",
+   "role": "merchandiser",
+   "scope": {
+    "type": "all"
+   }
+  },
+  {
+   "user_id": "WH",
+   "name": "Warehouse Desk",
+   "email": "wh@manyavar",
+   "role": "warehouse",
+   "scope": {
+    "type": "warehouse"
+   }
+  },
+  {
+   "user_id": "AM-01",
+   "name": "Rakesh Srivastava",
+   "email": "am-01@manyavar",
+   "role": "area_manager",
+   "scope": {
+    "type": "stores",
+    "stores": [
+     "LKO-01",
+     "LKO-02",
+     "LKO-03",
+     "LKO-04"
+    ]
+   }
+  },
+  {
+   "user_id": "AM-02",
+   "name": "Alok Tiwari",
+   "email": "am-02@manyavar",
+   "role": "area_manager",
+   "scope": {
+    "type": "stores",
+    "stores": [
+     "KNP-01",
+     "KNP-02",
+     "KNP-03"
+    ]
+   }
+  },
+  {
+   "user_id": "AM-03",
+   "name": "Nitin Sinha",
+   "email": "am-03@manyavar",
+   "role": "area_manager",
+   "scope": {
+    "type": "stores",
+    "stores": [
+     "PAT-01",
+     "PAT-02",
+     "PAT-03",
+     "PAT-04"
+    ]
+   }
+  },
+  {
+   "user_id": "AM-04",
+   "name": "Pankaj Jha",
+   "email": "am-04@manyavar",
+   "role": "area_manager",
+   "scope": {
+    "type": "stores",
+    "stores": [
+     "MZF-01",
+     "MZF-02"
+    ]
+   }
+  },
+  {
+   "user_id": "AM-05",
+   "name": "Harish Gowda",
+   "email": "am-05@manyavar",
+   "role": "area_manager",
+   "scope": {
+    "type": "stores",
+    "stores": [
+     "BLR-01",
+     "BLR-02",
+     "BLR-03",
+     "BLR-04",
+     "BLR-05"
+    ]
+   }
+  },
+  {
+   "user_id": "AM-06",
+   "name": "Mahesh Shetty",
+   "email": "am-06@manyavar",
+   "role": "area_manager",
+   "scope": {
+    "type": "stores",
+    "stores": [
+     "MYS-01",
+     "MYS-02"
+    ]
+   }
+  },
+  {
+   "user_id": "SM-LKO-01",
+   "name": "LKO-01 Store Manager",
+   "email": "lko-01@manyavar",
+   "role": "store_manager",
+   "scope": {
+    "type": "stores",
+    "stores": [
+     "LKO-01"
+    ]
+   }
+  },
+  {
+   "user_id": "SM-LKO-02",
+   "name": "LKO-02 Store Manager",
+   "email": "lko-02@manyavar",
+   "role": "store_manager",
+   "scope": {
+    "type": "stores",
+    "stores": [
+     "LKO-02"
+    ]
+   }
+  }
+ ]
+}

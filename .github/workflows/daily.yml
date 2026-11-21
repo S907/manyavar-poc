@@ -1,0 +1,24 @@
+name: Daily stock move list
+on:
+  schedule:
+    - cron: "30 0 * * *"   # 06:00 IST every day
+  workflow_dispatch: {}
+  push:
+    paths: ["data/csv/**", "engine/**", "run_daily.py"]
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements.txt
+      - name: Build the list and re-check every rule
+        run: |
+          if [ -d data/csv ]; then python run_daily.py --data data/csv; else echo "No data/csv in the repo: nothing to run."; fi
+      - name: Publish
+        run: |
+          git config user.name "stock-mover-bot"; git config user.email "bot@users.noreply.github.com"
+          git add web/data && git diff --cached --quiet || (git commit -m "Daily move list" && git push)
