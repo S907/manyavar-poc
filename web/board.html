@@ -69,7 +69,7 @@ select,input{font:inherit;padding:8px 11px;border:1px solid #cdbfac;border-radiu
 .scrim{display:none}
 @media(max-width:860px){.app{grid-template-columns:1fr}.side{position:fixed;left:0;top:0;width:232px;z-index:40;transform:translateX(-100%);transition:transform .2s}.app.open .side{transform:none}.app.open .scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:30}.burger{display:block}.row{grid-template-columns:1fr}.content{padding:16px 15px 72px}.top h1{font-size:18px}}
 .nav{scrollbar-width:thin;scrollbar-color:rgba(233,205,134,.5) transparent}.nav::-webkit-scrollbar{width:7px}.nav::-webkit-scrollbar-thumb{background:rgba(233,205,134,.5);border-radius:6px}.nav::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar{width:11px;height:11px}::-webkit-scrollbar-thumb{background:#d2c0a2;border-radius:7px;border:3px solid transparent;background-clip:content-box}::-webkit-scrollbar-thumb:hover{background:#c0a87f;background-clip:content-box}::-webkit-scrollbar-track{background:transparent}
-#recmap{height:440px;border-radius:14px;border:1px solid var(--line);z-index:0}.leaflet-container{font:inherit}
+#recmap{height:560px;border-radius:14px;border:1px solid var(--line);z-index:0}.leaflet-container{font:inherit}.recrow{align-items:start}.recmapcol{position:sticky;top:74px}@media(max-width:860px){.recmapcol{position:static}#recmap{height:380px}}
 </style></head><body>
 <div class="app" id="app">
  <div class="scrim" onclick="toggleMenu(false)"></div>
@@ -357,14 +357,13 @@ function recommendations(){title.textContent="Recommendations";const recs=buildR
   view.innerHTML=`<div class="card"><h2>Automated workflow</h2>
     <div class="flowrow" style="font-size:12.5px">${steps.map((s,i)=>`<span class="node">${i+1}. ${s}${i<2?' <b style="color:var(--ok)">auto</b>':i===2?' <b style="color:var(--accent)">you</b>':''}</span>${i<steps.length-1?'<span class="arr">&rarr;</span>':''}`).join("")}</div>
     <div class="sub2" style="margin-top:8px">The engine finds every store short on a style+size, picks the cheapest source (a nearby overstocked store, else the warehouse), and proposes the move. Click any move to trace it on the map.</div></div>
-   <div class="card"><h2>Live move map <span class="c">${recs.length} proposed routes</span></h2>
+   <div class="row recrow"><div class="recmapcol"><div class="card" style="margin:0"><h2>Live move map <span class="c">${recs.length} proposed routes</span></h2>
      <div style="position:relative"><div id="recmap"></div><div id="recpanel" style="display:none"></div></div>
-     <div class="legend"><span><span class="dot" style="background:#2f6db4"></span>From warehouse</span><span><span class="dot" style="background:#8a5a1a"></span>Store &rarr; store</span><span><span class="dot" style="background:#9f1d15"></span>Store that is short</span></div></div>
-   <div class="card"><h2>Recommended moves <span class="c">${recs.length} proposed${may?'':' &middot; read-only'}</span>${may&&recs.length?`<button class="btn g sm" style="margin-left:10px" onclick="approveAll()">Approve all &amp; send</button>`:''}</h2>
+     <div class="legend"><span><span class="dot" style="background:#2f6db4"></span>From warehouse</span><span><span class="dot" style="background:#8a5a1a"></span>Store &rarr; store</span><span><span class="dot" style="background:#9f1d15"></span>Store that is short</span></div></div></div><div><div class="card"><h2>Recommended moves <span class="c">${recs.length} proposed${may?'':' &middot; read-only'}</span>${may&&recs.length?`<button class="btn g sm" style="margin-left:10px" onclick="approveAll()">Approve all &amp; send</button>`:''}</h2>
     ${recs.length?recs.map(r=>`<div class="shp" style="cursor:pointer" onclick="focusRec('${r.key}')"><div class="hd"><span class="rt">${r.from} &rarr; ${r.to}</span><span class="sub2" style="margin-left:auto">${r.need}&times; ${r.style}-${r.size}</span></div>
       <div class="flowrow"><span class="node">${r.kind==='STORE_TO_STORE'?'Move surplus':'Warehouse stock'}</span><span class="arr">&rarr;</span><span class="node">${r.style}-${r.size}</span><span class="arr">&rarr;</span><span class="node">${r.to}</span></div>
       <div class="sub2">${r.to} is short this size. Source: <b>${r.from}</b> (${r.kind==='STORE_TO_STORE'?'overstocked nearby':'central warehouse'}).</div>
-      ${may?`<div style="display:flex;gap:6px;margin-top:7px" onclick="event.stopPropagation()"><button class="btn ok sm" onclick="approveRec('${r.key}')">Approve &amp; send ${r.need}</button><button class="btn sm" onclick="dismissRec('${r.key}')">Dismiss</button></div>`:''}</div>`).join(""):'<div class="sub2">No shortfalls in view — every store is covered.</div>'}</div>`;
+      ${may?`<div style="display:flex;gap:6px;margin-top:7px" onclick="event.stopPropagation()"><button class="btn ok sm" onclick="approveRec('${r.key}')">Approve &amp; send ${r.need}</button><button class="btn sm" onclick="dismissRec('${r.key}')">Dismiss</button></div>`:''}</div>`).join(""):'<div class="sub2">No shortfalls in view — every store is covered.</div>'}</div></div></div>`;
   initRecMap(recs);
 }
 function recPanelHtml(r){const may=can('accept')||can('approve')||can('load');return `<div style="position:absolute;top:12px;right:12px;width:252px;background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:0 10px 30px rgba(87,28,37,.24);padding:15px;z-index:500">
@@ -392,7 +391,7 @@ function initRecMap(recs){const el=document.getElementById('recmap');if(!el||!wi
     if(!seen[r.to]){seen[r.to]=1;L.circleMarker(b,{radius:7,color:'#fff',weight:2,fillColor:'#9f1d15',fillOpacity:.95}).addTo(map).bindTooltip(r.to+' &middot; short',{direction:'top'}).on('click',()=>focusRec(r.key));pts.push(b);}
     recMovers.push({a,b,t:Math.random(),m:L.circleMarker(a,{radius:5,color:'#fff',weight:2,fillColor:col,fillOpacity:1}).addTo(map)});});
   if(pts.length)map.fitBounds(pts,{padding:[34,34]});
-  _recmap=map;
+  _recmap=map;setTimeout(()=>{try{map.invalidateSize()}catch(e){}},130);
   recTimer=setInterval(()=>{recMovers.forEach(o=>{o.t+=0.012;if(o.t>1)o.t=0;o.m.setLatLng([o.a[0]+(o.b[0]-o.a[0])*o.t,o.a[1]+(o.b[1]-o.a[1])*o.t]);});},70);
 }
 window.approveRec=key=>{const[to,style,size]=key.split('|');const r=buildRecs().find(x=>x.key===key);if(!r){recApproved[key]=1;return route();}
